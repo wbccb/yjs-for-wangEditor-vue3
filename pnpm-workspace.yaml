@@ -1,0 +1,3 @@
+packages:
+  - '.'      # 根目录作为库包
+  - 'demo'   # demo 目录作为 workspace 成员

@@ -1,21 +1,31 @@
 {
-  "name": "yjs-for-wangeditor-vue3",
-  "private": true,
+  "name": "yjs-for-vue3",
+  "private": false,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vue-tsc -b && vite build",
-    "preview": "vite preview"
+    "build": "vite build",
+    "dev-use-dist-js": "vite build --watch",
+    "dev-demo": "pnpm --filter demo dev"
   },
   "dependencies": {
     "vue": "^3.5.18"
   },
   "devDependencies": {
+    "@types/node": "^24.3.0",
+    "@typescript-eslint/eslint-plugin": "^8.41.0",
+    "@typescript-eslint/parser": "^8.41.0",
     "@vitejs/plugin-vue": "^6.0.1",
     "@vue/tsconfig": "^0.7.0",
+    "eslint": "^9.34.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.4",
+    "prettier": "^3.6.2",
     "typescript": "~5.8.3",
     "vite": "^7.1.2",
+    "vite-plugin-dts": "^4.5.4",
     "vue-tsc": "^3.0.5"
-  }
+  }, "workspaces": {
+  "packages": ["demo"]
+}
 }

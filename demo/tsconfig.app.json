@@ -2,6 +2,10 @@
   "extends": "@vue/tsconfig/tsconfig.dom.json",
   "compilerOptions": {
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
+    "paths": {
+      // 让 TypeScript 识别库源码
+      "yjs-for-vue3": ["../src/index.ts"]
+    },
 
     /* Linting */
     "strict": true,
