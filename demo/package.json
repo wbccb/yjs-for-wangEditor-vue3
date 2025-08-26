@@ -10,7 +10,13 @@
   },
   "dependencies": {
     "vue": "^3.5.18",
-    "yjs-for-vue3": "workspace:*"
+    "yjs-for-vue3": "workspace:*",
+    "@wangeditor-next/yjs": "latest",
+    "@wangeditor-next/editor": "latest",
+    "@wangeditor-next/editor-for-vue@next": "latest",
+    "y-protocols": "^1.0.6",
+    "y-websocket": "^2.0.4",
+    "yjs": "^13.6.19"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^6.0.1",
