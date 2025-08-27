@@ -1,5 +1,22 @@
-# Vue 3 + TypeScript + Vite
+# demo
 
-This template should help get you started developing with Vue 3 and TypeScript in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
 
-Learn more about the recommended Project Setup and IDE Support in the [Vue Docs TypeScript Guide](https://vuejs.org/guide/typescript/overview.html#project-setup).
+## 启动本地WebSocket服务器
+启动一个简单的websocket服务器，内部自动处理了Y.js相关的更新命令接收 和 转化到各个服务器
+```shell
+ npx y-websocket-server --port 1234 --path /wangeditor-next-yjs
+```
+
+
+## 启动服务
+```shell
+pnpm run dev
+```
+
+## 打开浏览器输入链接查看效果
+打开多个`http://localhost:5173/`
+
+或者可以多起几个服务：
+- `http://localhost:5173/`
+- `http://localhost:5174/`
+- `http://localhost:5175/`

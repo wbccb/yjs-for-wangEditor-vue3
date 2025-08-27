@@ -13,6 +13,7 @@
         :defaultConfig="editorConfig"
         mode="default"
         @onCreated="handleCreated"
+        @onChange="handleChange"
       />
     </div>
     <div style="margin-top: 15px">{{ html }}</div>
@@ -21,7 +22,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, onBeforeUnmount, ref, shallowRef, onMounted } from "vue";
+import { defineComponent, onBeforeUnmount, ref, shallowRef, onWatcherCleanup, watchEffect } from "vue";
 import "@wangeditor-next/editor/dist/css/style.css";
 import { slateNodesToInsertDelta, withYHistory, withYjs, YjsEditor } from "@wangeditor-next/yjs";
 import { Boot, IDomEditor, IEditorConfig, IToolbarConfig, SlateDescendant } from "@wangeditor-next/editor";
@@ -33,56 +34,66 @@ export default defineComponent({
   name: "Simple",
   components: { Editor, Toolbar },
   setup() {
-    const html = ref("<p>hello</p>");
-    const selectionString = ref("");
-
+    // -------------------- y.js --------------------
     const yDoc = new Y.Doc();
     const wsProvider = new WebsocketProvider("ws://localhost:1234", "wangeditor-next-yjs", yDoc);
     const sharedType = yDoc.get("content", Y.XmlText);
-
     Boot.registerPlugin(withYjs(sharedType));
     Boot.registerPlugin(withYHistory());
     wsProvider.on("status", (event) => {
       console.log(event.status);
     });
     console.log(Boot.plugins);
+    // -------------------- y.js --------------------
 
+    // -------------------------- Editor --------------------------
+    const html = ref("<p>hello</p>");
+    const selectionString = ref("");
+    const toolbarConfig: Partial<IToolbarConfig> = {};
+    const editorConfig: Partial<IEditorConfig> = {
+      placeholder: "请输入内容...",
+    };
+    const editorRef = shallowRef();
+    onBeforeUnmount(() => {
+      const editor = editorRef.value;
+      if (editor == null) return;
+      editor.destroy();
+    });
+    const handleCreated = (editor: typeof Editor) => {
+      editorRef.value = editor; // 记录 editor 实例，重要！
+    };
+    const handleChange = (innerEditor: typeof Editor) => {
+      html.value = innerEditor.getHtml();
+    };
+    // -------------------------- Editor --------------------------
+
+    // -------- Y.js <-> Editor --------------------------
     const initialValue: SlateDescendant[] = [
       {
         type: "paragraph",
         children: [{ text: "hello" }],
       },
     ];
+    watchEffect(async () => {
+      onWatcherCleanup(() => {
+        if (editorRef.value && Object.prototype.hasOwnProperty.call(editorRef.value, "diisconnect")) {
+          YjsEditor.disconnect(editorRef.value);
+        }
+      });
 
-    // 工具栏配置
-    const toolbarConfig: Partial<IToolbarConfig> = {};
-
-    // 编辑器配置
-    const editorConfig: Partial<IEditorConfig> = {
-      placeholder: "请输入内容...",
-    };
-
-    console.log(Boot.plugins);
-
-    // 编辑器实例，必须用 shallowRef
-    const editorRef = shallowRef();
-
-    // 组件销毁时，也及时销毁编辑器
-    onBeforeUnmount(() => {
-      const editor = editorRef.value;
-      if (editor == null) return;
-      editor.destroy();
+      if (editorRef.value) {
+        sharedType.applyDelta(slateNodesToInsertDelta(initialValue));
+        YjsEditor.connect(editorRef.value);
+      }
     });
-
-    const handleCreated = (editor: typeof Editor) => {
-      editorRef.value = editor; // 记录 editor 实例，重要！
-    };
+    // -------- Y.js <-> Editor --------------------------
 
     return {
       html,
       selectionString,
       editorConfig,
       handleCreated,
+      handleChange,
       editorRef,
       toolbarConfig,
     };
