@@ -1,6 +1,6 @@
 <template>
-  <!--  <remote-cursors-overlay-page></remote-cursors-overlay-page>-->
-  <simple></simple>
+  <remote-cursors-overlay-page></remote-cursors-overlay-page>
+  <!--  <simple></simple>-->
 </template>
 
 <script lang="ts">
