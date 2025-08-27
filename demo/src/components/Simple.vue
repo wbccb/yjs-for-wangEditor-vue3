@@ -25,7 +25,8 @@
 import { defineComponent, onBeforeUnmount, ref, shallowRef, onWatcherCleanup, watchEffect } from "vue";
 import "@wangeditor-next/editor/dist/css/style.css";
 import { slateNodesToInsertDelta, withYHistory, withYjs, YjsEditor } from "@wangeditor-next/yjs";
-import { Boot, IDomEditor, IEditorConfig, IToolbarConfig, SlateDescendant } from "@wangeditor-next/editor";
+import { Boot } from "@wangeditor-next/editor";
+import type { IEditorConfig, IToolbarConfig, SlateDescendant } from "@wangeditor-next/editor";
 import { WebsocketProvider } from "y-websocket";
 import * as Y from "yjs";
 import { Editor, Toolbar } from "@wangeditor-next/editor-for-vue";
