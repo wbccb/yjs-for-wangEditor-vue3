@@ -14,7 +14,7 @@
 ### 1.1 启动本地WebSocket服务器
 启动一个简单的websocket服务器，内部自动处理了Y.js相关的更新命令接收 和 转化到各个服务器
 ```shell
- npx y-websocket-server --port 1234 --path /wangeditor-next-yjs
+ npx y-websocket --port 1234 --path /wangeditor-next-yjs
 ```
 
 ### 1.2 启动服务

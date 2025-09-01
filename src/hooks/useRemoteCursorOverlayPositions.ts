@@ -5,7 +5,7 @@ import type { OverlayPosition, CaretPosition, SelectionRect } from "../utils/get
 import { type Ref, watchEffect } from "vue";
 import { computed, ref, watch } from "vue";
 import type { IDomEditor } from "@wangeditor-next/editor";
-import { CursorState } from "@wangeditor-next/yjs";
+import type { CursorState } from "@wangeditor-next/yjs";
 import { getCursorRange } from "../utils/getCursorRange.ts";
 import { useRemoteCursorStates } from "./useRemoteCursorStates.ts";
 
@@ -19,7 +19,7 @@ export type CursorOverlayData<TCursorData extends Record<string, unknown>> = Cur
 
 export type UseRemoteCursorOverlayPositionsOptions<T extends HTMLElement> = {
   shouldGenerateOverlay?: NodeMatch<Text>;
-  editor: IDomEditor;
+  editorRef: Ref<IDomEditor | undefined>;
 } & (
   | {
       // Container the overlay will be rendered in. If set, all returned overlay positions
@@ -40,12 +40,12 @@ export type UseRemoteCursorOverlayPositionsOptions<T extends HTMLElement> = {
 export function useRemoteCursorOverlayPositions<
   TCursorData extends Record<string, unknown>,
   TContainer extends HTMLElement = HTMLDivElement,
->({ containerRef, shouldGenerateOverlay, editor, ...opts }: UseRemoteCursorOverlayPositionsOptions<TContainer>) {
+>({ containerRef, shouldGenerateOverlay, editorRef, ...opts }: UseRemoteCursorOverlayPositionsOptions<TContainer>) {
   // 1. 监听Y.js的change事件，从而改变cursorStates数据
   // 2. 监听cursorState数据 => 合并Y.js拿到的数据 => 形成最终的数据返回
 
   // ===============监听Y.js的改变从而自动改变cursors===============
-  const { cursors } = useRemoteCursorStates(editor);
+  const { cursors } = useRemoteCursorStates(editorRef);
 
   // ===============监听containerRef的变化===============
   const observer = new ResizeObserver(() => {
@@ -55,13 +55,13 @@ export function useRemoteCursorOverlayPositions<
   });
   const refreshOnResize = "refreshOnResize" in opts ? (opts.refreshOnResize ?? true) : true;
   watchEffect((onCleanup) => {
-    if (refreshOnResize) {
-      const element = containerRef!.value;
+    if (refreshOnResize && containerRef && containerRef.value) {
+      const element = containerRef.value;
       observer.observe(element);
     }
 
     onCleanup(() => {
-      if (refreshOnResize) {
+      if (refreshOnResize && containerRef && containerRef.value) {
         const element = containerRef!.value;
         observer.unobserve(element);
       }
@@ -79,6 +79,8 @@ export function useRemoteCursorOverlayPositions<
     const containerRect = containerRef!.value.getBoundingClientRect();
     const xOffset = containerRect?.x ?? 0;
     const yOffset = containerRect?.y ?? 0;
+
+    const editor = editorRef.value!;
 
     const overlayPositionsChanged = Object.keys(overlayPositions.value).length !== Object.keys(newCursorsValue).length;
     if (overlayPositionsChanged) {
@@ -115,9 +117,16 @@ export function useRemoteCursorOverlayPositions<
   // ===============cursors改变从而触发overlayPositions的重新计算===============
 
   // ------------------------根据cursors和overlayPositions进行overlayData的计算------------------------
+  type OverlayDataType = CursorState<TCursorData> & {
+    range: BaseRange | null;
+  } & OverlayPosition;
   const overlayData = computed(() => {
+    if (!editorRef.value) {
+      return [];
+    }
+    const editor = editorRef.value;
     return Object.entries(cursors.value).map(([clientId, state]) => {
-      const range = state.relativeSelection && getCursorRange(editor, state);
+      const range = state.relativeSelection ? getCursorRange(editor, state) : null;
       const overlayPosition = overlayPositions.value[clientId];
 
       return {
@@ -126,11 +135,11 @@ export function useRemoteCursorOverlayPositions<
         caretPosition: overlayPosition?.caretPosition ?? null,
         selectionRects: overlayPosition?.selectionRects ?? FROZEN_EMPTY_ARRAY,
       };
-    });
+    }) as Array<OverlayDataType>;
   });
   // ------------------------根据cursors和overlayPositions进行overlayData的计算------------------------
 
   return {
-    overlayData,
+    cursors: overlayData,
   };
 }

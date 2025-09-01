@@ -1,5 +1,7 @@
-import { CursorEditor, CursorState, relativeRangeToSlateRange } from "@wangeditor-next/yjs";
-import { BaseRange, Descendant, Range } from "slate";
+import { CursorEditor, relativeRangeToSlateRange } from "@wangeditor-next/yjs";
+import type { CursorState } from "@wangeditor-next/yjs";
+import { Range } from "slate";
+import type { BaseRange, Descendant } from "slate";
 
 const CHILDREN_TO_CURSOR_STATE_TO_RANGE: WeakMap<Descendant[], WeakMap<CursorState, Range | null>> = new WeakMap();
 
@@ -24,11 +26,11 @@ export function getCursorRange<TCursorData extends Record<string, unknown> = Rec
     try {
       range = relativeRangeToSlateRange(editor.sharedRoot, editor, cursorState.relativeSelection);
 
-      cursorStates.set(cursorState, range);
+      cursorStates.set(cursorState, range!);
     } catch (e) {
       return null;
     }
   }
 
-  return range;
+  return range === undefined ? null : range;
 }

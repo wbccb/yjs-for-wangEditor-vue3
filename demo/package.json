@@ -4,7 +4,8 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --force",
+    "dev-server": "npx y-websocket --port 1234 --path /wangeditor-next-yjs",
     "build": "vue-tsc -b && vite build",
     "preview": "vite preview"
   },

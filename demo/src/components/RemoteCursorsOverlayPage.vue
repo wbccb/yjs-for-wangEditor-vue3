@@ -7,10 +7,10 @@
         :defaultConfig="toolbarConfig"
         mode="default"
       />
-      <RemoteCursorOverlay>
+      <RemoteCursorOverlay :editor="editorRef">
         <Editor
           style="height: 500px; overflow-y: hidden"
-          v-model="html"
+          :model-value="html"
           :defaultConfig="editorConfig"
           mode="default"
           @onCreated="handleCreated"

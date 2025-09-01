@@ -6,7 +6,8 @@
   "scripts": {
     "build": "vite build",
     "dev-use-dist-js": "vite build --watch",
-    "dev-demo": "pnpm --filter demo dev"
+    "dev-demo": "pnpm --filter demo dev",
+    "dev-demo-server": "pnpm --filter demo dev-server"
   },
   "dependencies": {
     "vue": "^3.5.18"
