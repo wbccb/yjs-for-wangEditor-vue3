@@ -1,9 +1,10 @@
 import { defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
 import path from "path";
+import windi from "vite-plugin-windicss";
 
 export default defineConfig({
-  plugins: [vue()],
+  plugins: [vue(), windi()],
   resolve: {
     alias: {
       // 关键：将库名指向根目录源码
