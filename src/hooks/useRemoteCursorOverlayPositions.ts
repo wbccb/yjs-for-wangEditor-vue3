@@ -1,8 +1,8 @@
 import type { BaseRange } from "slate";
-import type { NodeMatch, Text } from "slate";
+import type { NodeMatch, Text, Range as SlateRange } from "slate";
 import { getOverlayPosition } from "../utils/getOverlayPosition";
 import type { OverlayPosition, CaretPosition, SelectionRect } from "../utils/getOverlayPosition";
-import { type Ref, watchEffect } from "vue";
+import { type Ref, toRaw, watchEffect } from "vue";
 import { computed, ref, watch } from "vue";
 import type { IDomEditor } from "@wangeditor-next/editor";
 import type { CursorState } from "@wangeditor-next/yjs";
@@ -20,22 +20,13 @@ export type CursorOverlayData<TCursorData extends Record<string, unknown>> = Cur
 export type UseRemoteCursorOverlayPositionsOptions<T extends HTMLElement> = {
   shouldGenerateOverlay?: NodeMatch<Text>;
   editorRef: Ref<IDomEditor | undefined>;
-} & (
-  | {
-      // Container the overlay will be rendered in. If set, all returned overlay positions
-      // will be relative to this container and the cursor positions will be automatically
-      // updated on container resize.
-      containerRef?: undefined;
-    }
-  | {
-      containerRef: Ref<T>;
-
-      // Whether to refresh the cursor overlay positions on container resize. Defaults
-      // to true. If set to 'debounced', the remote cursor positions will be updated
-      // each animation frame.
-      refreshOnResize?: boolean | "debounced";
-    }
-);
+} & {
+  containerRef?: Ref<T | undefined>;
+  // Whether to refresh the cursor overlay positions on container resize. Defaults
+  // to true. If set to 'debounced', the remote cursor positions will be updated
+  // each animation frame.
+  refreshOnResize?: boolean | "debounced";
+};
 
 export function useRemoteCursorOverlayPositions<
   TCursorData extends Record<string, unknown>,
@@ -80,27 +71,39 @@ export function useRemoteCursorOverlayPositions<
     const xOffset = containerRect?.x ?? 0;
     const yOffset = containerRect?.y ?? 0;
 
-    const editor = editorRef.value!;
+    const editor = toRaw(editorRef.value!);
 
-    const overlayPositionsChanged = Object.keys(overlayPositions.value).length !== Object.keys(newCursorsValue).length;
+    const overlayPositionCache: WeakMap<SlateRange, OverlayPosition> = new WeakMap();
+
+    let overlayPositionsChanged = Object.keys(overlayPositions.value).length !== Object.keys(newCursorsValue).length;
+    // 每次都更新位置
+    const newOverlayPositions = Object.fromEntries(
+      Object.entries(newCursorsValue).map(([key, state]) => {
+        const range: SlateRange = state.relativeSelection && getCursorRange(editor, state);
+
+        console.info(state.data.name, "range的数据为:", JSON.stringify(range || ""));
+
+        if (!range) {
+          return [key, FROZEN_EMPTY_ARRAY];
+        }
+
+        if (overlayPositionCache.get(range)) {
+          return [key, overlayPositionCache.get(range)];
+        }
+
+        const overlayPosition = getOverlayPosition(editor, range, {
+          xOffset,
+          yOffset,
+          shouldGenerateOverlay,
+        });
+        overlayPositionCache.set(range, overlayPosition);
+        overlayPositionsChanged = true;
+        console.info(state.data.name, "overlayPosition", JSON.stringify(overlayPosition || ""));
+
+        return [key, overlayPosition];
+      }),
+    );
     if (overlayPositionsChanged) {
-      const newOverlayPositions = Object.fromEntries(
-        Object.entries(newCursorsValue).map(([key, state]) => {
-          const range = state.relativeSelection && getCursorRange(editor, state);
-
-          if (!range) {
-            return [key, FROZEN_EMPTY_ARRAY];
-          }
-
-          const overlayPosition = getOverlayPosition(editor, range, {
-            xOffset,
-            yOffset,
-            shouldGenerateOverlay,
-          });
-
-          return [key, overlayPosition];
-        }),
-      );
       overlayPositions.value = newOverlayPositions;
     }
   };

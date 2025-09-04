@@ -36,7 +36,7 @@ export type GetSelectionRectsOptions = {
 
 export function getOverlayPosition(
   editor: IDomEditor,
-  range: BaseRange,
+  range: SlateRange,
   { yOffset, xOffset, shouldGenerateOverlay }: GetSelectionRectsOptions,
 ): OverlayPosition {
   const [start, end] = SlateRange.edges(range);
