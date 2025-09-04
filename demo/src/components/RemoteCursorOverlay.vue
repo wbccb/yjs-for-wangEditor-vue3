@@ -3,19 +3,37 @@
     <slot></slot>
     <template v-if="cursors && cursors.length > 0">
       <template v-for="cursor in cursors" :key="cursor.clientId">
-        <div
-          class="absolute pointer-events-none"
-          :style="{ backgroundColor: addAlpha(cursor.data.color, 0.5), ...cursor.position }"
-        />
-
-        <div class="w-0.5 absolute" :style="{ background: cursor.data.color, ...cursor.caretPosition }">
+        <template v-for="selectionRect in cursor.selectionRects" :key="selectionRect">
           <div
-            class="absolute text-xs text-white whitespace-nowrap top-0 rounded rounded-bl-none px-1.5 py-0.5"
-            :style="{ transform: 'translateY(-100%)', background: cursor.data.color }"
+            class="absolute pointer-events-none"
+            :style="{
+              backgroundColor: addAlpha(cursor.data.color, 0.5),
+              left: selectionRect.left + 'px',
+              top: selectionRect.top + 'px',
+              height: selectionRect.height + 'px',
+              width: selectionRect.width + 'px',
+            }"
+          />
+        </template>
+
+        <template v-if="cursor.caretPosition">
+          <div
+            class="w-0.5 absolute"
+            :style="{
+              background: cursor.data.color,
+              left: cursor.caretPosition.left + 'px',
+              top: cursor.caretPosition.top + 'px',
+              height: cursor.caretPosition.height + 'px',
+            }"
           >
-            {{ cursor.data.name }}
+            <div
+              class="absolute text-xs text-white whitespace-nowrap top-0 rounded rounded-bl-none px-1.5 py-0.5"
+              :style="{ transform: 'translateY(-100%)', background: cursor.data.color }"
+            >
+              {{ cursor.data.name }}
+            </div>
           </div>
-        </div>
+        </template>
       </template>
     </template>
   </div>
