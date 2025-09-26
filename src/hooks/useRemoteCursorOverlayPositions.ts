@@ -81,8 +81,6 @@ export function useRemoteCursorOverlayPositions<
       Object.entries(newCursorsValue).map(([key, state]) => {
         const range: SlateRange = state.relativeSelection && getCursorRange(editor, state);
 
-        console.info(state.data.name, "range的数据为:", JSON.stringify(range || ""));
-
         if (!range) {
           return [key, FROZEN_EMPTY_ARRAY];
         }
@@ -98,7 +96,6 @@ export function useRemoteCursorOverlayPositions<
         });
         overlayPositionCache.set(range, overlayPosition);
         overlayPositionsChanged = true;
-        console.info(state.data.name, "overlayPosition", JSON.stringify(overlayPosition || ""));
 
         return [key, overlayPosition];
       }),

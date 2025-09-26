@@ -20,7 +20,6 @@ export const useRemoteCursorStates = <TCursorData extends Record<string, unknown
     cursors.value[clientId] = state;
   };
   const changeHandler = (event: RemoteCursorChangeEventListener) => {
-    console.warn("CursorEditor change", event);
     event.added.forEach((clientId: number) => {
       getCurrentCursorState(clientId);
     });
@@ -36,8 +35,6 @@ export const useRemoteCursorStates = <TCursorData extends Record<string, unknown
     () => editorRef.value,
     (editor) => {
       if (editor) {
-        console.log("CursorEditor onMounted()注册事件", editor);
-
         // 拿到的是Vue3中的Proxy对象，跟原始对象是不同的映射
         CursorEditor.on(toRaw(editor), "change", changeHandler);
 
@@ -51,7 +48,6 @@ export const useRemoteCursorStates = <TCursorData extends Record<string, unknown
   );
 
   onUnmounted(() => {
-    console.log("CursorEditor onUnmounted()解除事件");
     if (editorRef.value) {
       CursorEditor.off(toRaw(editorRef.value), "change", changeHandler);
     }
