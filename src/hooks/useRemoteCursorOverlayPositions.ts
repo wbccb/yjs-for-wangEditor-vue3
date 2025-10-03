@@ -2,7 +2,7 @@ import type { BaseRange } from "slate";
 import type { NodeMatch, Text, Range as SlateRange } from "slate";
 import { getOverlayPosition } from "../utils/getOverlayPosition";
 import type { OverlayPosition, CaretPosition, SelectionRect } from "../utils/getOverlayPosition";
-import { type Ref, toRaw, watchEffect } from "vue";
+import { type Ref, type ShallowRef, toRaw, watchEffect } from "vue";
 import { computed, ref, watch } from "vue";
 import type { IDomEditor } from "@wangeditor-next/editor";
 import type { CursorState } from "@wangeditor-next/yjs";
@@ -19,7 +19,7 @@ export type CursorOverlayData<TCursorData extends Record<string, unknown>> = Cur
 
 export type UseRemoteCursorOverlayPositionsOptions<T extends HTMLElement> = {
   shouldGenerateOverlay?: NodeMatch<Text>;
-  editorRef: Ref<IDomEditor | undefined>;
+  editorRef: ShallowRef<IDomEditor | undefined>;
 } & {
   containerRef?: Ref<T | undefined>;
   // Whether to refresh the cursor overlay positions on container resize. Defaults

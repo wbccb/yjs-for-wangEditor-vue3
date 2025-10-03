@@ -70,7 +70,7 @@ export default defineComponent({
       editor.destroy();
     });
     const handleCreated = (editor: typeof Editor) => {
-      editorRef.value = editor; // 记录 editor 实例，重要！
+      editorRef.value = editor; // 记录 editor 实例
     };
     const handleChange = (innerEditor: typeof Editor) => {
       html.value = innerEditor.getHtml();

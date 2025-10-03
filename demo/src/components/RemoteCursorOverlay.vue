@@ -40,7 +40,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, watch, ref } from "vue";
+import { defineComponent, watch, ref, shallowRef } from "vue";
 import type { PropType } from "vue";
 import { useRemoteCursorOverlayPositions } from "yjs-for-vue3";
 import { addAlpha } from "../utils.ts";
@@ -57,7 +57,7 @@ export default defineComponent({
   setup(props) {
     const containerRef = ref<HTMLDivElement>();
 
-    const editorRef = ref<IDomEditor>();
+    const editorRef = shallowRef<IDomEditor>();
     watch(
       () => props.editor,
       (newValue) => {

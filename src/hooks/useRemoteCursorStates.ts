@@ -1,11 +1,10 @@
-import { onUnmounted, ref, toRaw, watch } from "vue";
-import type { Ref } from "vue";
+import { onUnmounted, ref, type ShallowRef, toRaw, watch } from "vue";
 import { CursorEditor } from "@wangeditor-next/yjs";
 import type { CursorState, RemoteCursorChangeEventListener } from "@wangeditor-next/yjs";
 import type { IDomEditor } from "@wangeditor-next/editor";
 
 export const useRemoteCursorStates = <TCursorData extends Record<string, unknown>>(
-  editorRef: Ref<IDomEditor | undefined>,
+  editorRef: ShallowRef<IDomEditor | undefined>,
 ) => {
   const cursors = ref<Record<string, CursorState<TCursorData>>>({});
 
