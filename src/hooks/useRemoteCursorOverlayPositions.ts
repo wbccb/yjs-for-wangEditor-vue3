@@ -39,7 +39,7 @@ export function useRemoteCursorOverlayPositions<
   const { cursors } = useRemoteCursorStates(editorRef);
 
   // ===============监听containerRef的变化===============
-  const refreshOnResize = "refreshOnResize" in opts ? (opts.refreshOnResize ?? true) : true;
+  const refreshOnResize = containerRef ? (opts.refreshOnResize ?? true) : false;
   let rafId: number | null = null;
   const observer = new ResizeObserver(() => {
     // 重新进行界面的渲染刷新
@@ -55,8 +55,8 @@ export function useRemoteCursorOverlayPositions<
     }
   });
   watchEffect((onCleanup) => {
-    if (refreshOnResize && containerRef && containerRef.value) {
-      const element = containerRef.value;
+    if (refreshOnResize && containerRef!.value) {
+      const element = containerRef!.value;
       observer.observe(element);
     }
 
@@ -65,7 +65,7 @@ export function useRemoteCursorOverlayPositions<
         cancelAnimationFrame(rafId);
         rafId = null;
       }
-      if (refreshOnResize && containerRef && containerRef.value) {
+      if (refreshOnResize && containerRef!.value) {
         const element = containerRef!.value;
         observer.unobserve(element);
       }
@@ -77,11 +77,12 @@ export function useRemoteCursorOverlayPositions<
   const overlayPositions = ref<Record<string, OverlayPosition>>({});
   let overlayPositionCache: WeakMap<SlateRange, OverlayPosition> = new WeakMap();
   const computeOverlayPosition = (newCursorsValue: Record<string, CursorState<TCursorData>>) => {
-    if (!containerRef || !containerRef.value) {
-      return;
-    }
-
-    const containerRect = containerRef!.value.getBoundingClientRect();
+    // 监听containerRef.value挂载再触发一次computeOverlayPosition()
+    // if (containerRef && !containerRef.value) {
+    //   return;
+    // }
+    // 跟React版本一致，支持【containerRef.value】为空，代表还没初始化完成dom
+    const containerRect = containerRef?.value?.getBoundingClientRect();
     const xOffset = containerRect?.x ?? 0;
     const yOffset = containerRect?.y ?? 0;
 
@@ -116,11 +117,21 @@ export function useRemoteCursorOverlayPositions<
       overlayPositions.value = newOverlayPositions;
     }
   };
+
+  // 跟React的useLayoutEffect相同逻辑，只是Vue不需要重新渲染，只需要监听依赖的数据
+  // containerRef可能为空，Vue支持监听null/undefined，不会进行响应式收集
+  // overlayPosition的计算依赖于：当前传入的DOM-containerRef（需要一开始没挂载，需要一段时间才挂载），cursors的值变化
+  // computeOverlayPosition()有使用缓存overlayPositionCache，即使跟observer.observe(element)重复触发，也不会重复赋值overlayPositions.value
   watch(
-    () => cursors.value,
-    (newCursorsValue) => {
+    () => [cursors.value, containerRef?.value],
+    () => {
+      if (!editorRef.value) return;
       // 重新计算overlayPosition
-      computeOverlayPosition(newCursorsValue);
+      computeOverlayPosition(cursors.value);
+    },
+    {
+      immediate: true,
+      flush: "sync",
     },
   );
   // ===============cursors改变从而触发overlayPositions的重新计算===============
