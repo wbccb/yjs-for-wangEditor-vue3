@@ -9,8 +9,9 @@ export const useRemoteCursorStates = <TCursorData extends Record<string, unknown
   const cursors = ref<Record<string, CursorState<TCursorData>>>({});
 
   // ===============监听Y.js的改变从而自动改变cursors===============
-  const getCurrentCursorState = (clientId: number) => {
+  const updateCursor = (clientId: number) => {
     const editor = toRaw(editorRef.value);
+    if (!editor) return;
     const state = CursorEditor.cursorState(editor, clientId);
     if (state === null) {
       delete cursors.value[clientId];
@@ -20,25 +21,25 @@ export const useRemoteCursorStates = <TCursorData extends Record<string, unknown
   };
   const changeHandler = (event: RemoteCursorChangeEventListener) => {
     event.added.forEach((clientId: number) => {
-      getCurrentCursorState(clientId);
+      updateCursor(clientId);
     });
     event.removed.forEach((clientId: number) => {
-      getCurrentCursorState(clientId);
+      updateCursor(clientId);
     });
     event.updated.forEach((clientId: number) => {
-      getCurrentCursorState(clientId);
+      updateCursor(clientId);
     });
   };
 
-  const _initEditorWatch = watch(
+  watch(
     () => editorRef.value,
-    (editor) => {
-      if (editor) {
+    (newEditor, oldEditor) => {
+      if (oldEditor) {
+        CursorEditor.off(toRaw(oldEditor), "change", changeHandler);
+      }
+      if (newEditor) {
         // 拿到的是Vue3中的Proxy对象，跟原始对象是不同的映射
-        CursorEditor.on(toRaw(editor), "change", changeHandler);
-
-        // editor异步初始化完成后销毁监听
-        _initEditorWatch();
+        CursorEditor.on(toRaw(newEditor), "change", changeHandler);
       }
     },
     {
