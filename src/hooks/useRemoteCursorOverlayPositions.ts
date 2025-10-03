@@ -39,12 +39,21 @@ export function useRemoteCursorOverlayPositions<
   const { cursors } = useRemoteCursorStates(editorRef);
 
   // ===============监听containerRef的变化===============
+  const refreshOnResize = "refreshOnResize" in opts ? (opts.refreshOnResize ?? true) : true;
+  let rafId: number | null = null;
   const observer = new ResizeObserver(() => {
     // 重新进行界面的渲染刷新
-    overlayPositions.value = {};
-    computeOverlayPosition(cursors.value);
+    overlayPositionCache = new WeakMap();
+    if (refreshOnResize === "debounced") {
+      if (rafId) cancelAnimationFrame(rafId);
+
+      rafId = requestAnimationFrame(() => {
+        computeOverlayPosition(cursors.value);
+      });
+    } else {
+      computeOverlayPosition(cursors.value);
+    }
   });
-  const refreshOnResize = "refreshOnResize" in opts ? (opts.refreshOnResize ?? true) : true;
   watchEffect((onCleanup) => {
     if (refreshOnResize && containerRef && containerRef.value) {
       const element = containerRef.value;
@@ -52,6 +61,10 @@ export function useRemoteCursorOverlayPositions<
     }
 
     onCleanup(() => {
+      if (rafId) {
+        cancelAnimationFrame(rafId);
+        rafId = null;
+      }
       if (refreshOnResize && containerRef && containerRef.value) {
         const element = containerRef!.value;
         observer.unobserve(element);
@@ -62,6 +75,7 @@ export function useRemoteCursorOverlayPositions<
 
   // ===============cursors改变从而触发overlayPositions的重新计算===============
   const overlayPositions = ref<Record<string, OverlayPosition>>({});
+  let overlayPositionCache: WeakMap<SlateRange, OverlayPosition> = new WeakMap();
   const computeOverlayPosition = (newCursorsValue: Record<string, CursorState<TCursorData>>) => {
     if (!containerRef || !containerRef.value) {
       return;
@@ -72,8 +86,6 @@ export function useRemoteCursorOverlayPositions<
     const yOffset = containerRect?.y ?? 0;
 
     const editor = toRaw(editorRef.value!);
-
-    const overlayPositionCache: WeakMap<SlateRange, OverlayPosition> = new WeakMap();
 
     let overlayPositionsChanged = Object.keys(overlayPositions.value).length !== Object.keys(newCursorsValue).length;
     // 每次都更新位置
@@ -110,9 +122,6 @@ export function useRemoteCursorOverlayPositions<
       // 重新计算overlayPosition
       computeOverlayPosition(newCursorsValue);
     },
-    {
-      deep: true,
-    },
   );
   // ===============cursors改变从而触发overlayPositions的重新计算===============
 
@@ -139,7 +148,13 @@ export function useRemoteCursorOverlayPositions<
   });
   // ------------------------根据cursors和overlayPositions进行overlayData的计算------------------------
 
+  const refresh = () => {
+    overlayPositionCache = new WeakMap();
+    computeOverlayPosition(cursors.value);
+  };
+
   return {
     cursors: overlayData,
+    refresh: refresh,
   };
 }
