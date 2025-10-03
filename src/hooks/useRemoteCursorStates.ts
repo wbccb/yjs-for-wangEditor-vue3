@@ -14,10 +14,10 @@ export const useRemoteCursorStates = <TCursorData extends Record<string, unknown
     if (!editor) return;
     const state = CursorEditor.cursorState(editor, clientId);
     if (state === null) {
-      delete cursors.value[clientId];
+      delete cursors.value[clientId.toString()];
       return;
     }
-    cursors.value[clientId] = state;
+    cursors.value[clientId.toString()] = state;
   };
   const changeHandler = (event: RemoteCursorChangeEventListener) => {
     event.added.forEach((clientId: number) => {
