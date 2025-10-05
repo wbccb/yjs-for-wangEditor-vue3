@@ -132,6 +132,7 @@ export function useRemoteCursorOverlayPositions<
     {
       immediate: true,
       flush: "sync",
+      deep: true,
     },
   );
   // ===============cursors改变从而触发overlayPositions的重新计算===============
