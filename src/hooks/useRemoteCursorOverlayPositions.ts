@@ -2,7 +2,7 @@ import type { BaseRange } from "slate";
 import type { NodeMatch, Text, Range as SlateRange } from "slate";
 import { getOverlayPosition } from "../utils/getOverlayPosition";
 import type { OverlayPosition, CaretPosition, SelectionRect } from "../utils/getOverlayPosition";
-import { type Ref, type ShallowRef, toRaw, watchEffect } from "vue";
+import { type Ref, type ShallowRef, toRaw, watchEffect, onUnmounted } from "vue";
 import { computed, ref, watch } from "vue";
 import type { IDomEditor } from "@wangeditor-next/editor";
 import type { CursorState } from "@wangeditor-next/yjs";
@@ -72,6 +72,39 @@ export function useRemoteCursorOverlayPositions<
     });
   });
   // ===============监听containerRef的变化===============
+
+  // ===============监听editor滚动，实时更新cursors的计算===============
+  const handleScroll = () => {
+    overlayPositionCache = new WeakMap();
+    if (rafId) {
+      cancelAnimationFrame(rafId);
+    }
+    rafId = requestAnimationFrame(() => {
+      computeOverlayPosition(cursors.value);
+    });
+  };
+
+  watch(
+    () => editorRef.value,
+    (newEditor, oldEditor) => {
+      if (oldEditor) {
+        oldEditor.off("scroll", handleScroll);
+      }
+      if (newEditor) {
+        newEditor.on("scroll", handleScroll);
+      }
+    },
+    {
+      immediate: true,
+    },
+  );
+
+  onUnmounted(() => {
+    if (editorRef.value) {
+      editorRef.value.off("scroll", handleScroll);
+    }
+  });
+  // ===============监听editor滚动，实时更新cursors的计算===============
 
   // ===============cursors改变从而触发overlayPositions的重新计算===============
   const overlayPositions = ref<Record<string, OverlayPosition>>({});
