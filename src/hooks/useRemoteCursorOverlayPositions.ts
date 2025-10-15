@@ -8,6 +8,7 @@ import type { IDomEditor } from "@wangeditor-next/editor";
 import type { CursorState } from "@wangeditor-next/yjs";
 import { getCursorRange } from "../utils/getCursorRange.ts";
 import { useRemoteCursorStates } from "./useRemoteCursorStates.ts";
+import { useEditorStatic } from "./use-editor-static.ts";
 
 const FROZEN_EMPTY_ARRAY = Object.freeze([]);
 
@@ -19,7 +20,7 @@ export type CursorOverlayData<TCursorData extends Record<string, unknown>> = Cur
 
 export type UseRemoteCursorOverlayPositionsOptions<T extends HTMLElement> = {
   shouldGenerateOverlay?: NodeMatch<Text>;
-  editorRef: ShallowRef<IDomEditor | undefined>;
+  editorRef?: ShallowRef<IDomEditor | undefined>;
 } & {
   containerRef?: Ref<T | undefined>;
   // Whether to refresh the cursor overlay positions on container resize. Defaults
@@ -34,6 +35,12 @@ export function useRemoteCursorOverlayPositions<
 >({ containerRef, shouldGenerateOverlay, editorRef, ...opts }: UseRemoteCursorOverlayPositionsOptions<TContainer>) {
   // 1. 监听Y.js的change事件，从而改变cursorStates数据
   // 2. 监听cursorState数据 => 合并Y.js拿到的数据 => 形成最终的数据返回
+
+  // 只有完全未传 editorRef 时，才从 context 获取
+  // undefined == null 或者 null == null 都为true
+  if (editorRef == null) {
+    editorRef = useEditorStatic();
+  }
 
   // ===============监听Y.js的改变从而自动改变cursors===============
   const { cursors } = useRemoteCursorStates(editorRef);

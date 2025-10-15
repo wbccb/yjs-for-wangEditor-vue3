@@ -1,29 +1,26 @@
-import { defineComponent, inject, type PropType, type ShallowRef, provide } from "vue";
 import type { IDomEditor } from "@wangeditor-next/editor";
+import { inject, provide, type ShallowRef } from "vue";
+
+export interface EditorContext {
+  editor: ShallowRef<IDomEditor | undefined>;
+}
 
 const EDITOR_CONTEXT_KEY = Symbol("editorContext");
 
-export const useEditorStatic = (): ShallowRef<IDomEditor | null> | null => {
-  const editor = inject<ShallowRef<IDomEditor | null> | null>(EDITOR_CONTEXT_KEY, null);
-  if (!editor) {
+export function provideEditor(editorRef: ShallowRef<IDomEditor | undefined>) {
+  provide(EDITOR_CONTEXT_KEY, {
+    editor: editorRef,
+  });
+}
+
+export const useEditorStatic = (): ShallowRef<IDomEditor | undefined> => {
+  const context = inject<EditorContext>(EDITOR_CONTEXT_KEY);
+
+  if (!context) {
     // 如果外部没有provide(ShallowRef)，则报错
-    console.warn(
-      "The `useEditorStatic` composable must be used inside the <EditorContextProvider> component's context.",
+    throw new Error(
+      "[useEditorStatic] editor context not provided.Call provideEditor() in a parent component before using useEditorStatic().",
     );
   }
-  return editor;
+  return context.editor;
 };
-
-export const EditorContextProvider = defineComponent({
-  name: "EditorContextProvider",
-  props: {
-    editor: {
-      type: Object as PropType<ShallowRef<IDomEditor | null>>,
-      required: true,
-    },
-  },
-  setup(props, { slots }) {
-    provide(EDITOR_CONTEXT_KEY, props.editor);
-    return () => slots.default?.();
-  },
-});
