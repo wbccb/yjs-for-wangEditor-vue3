@@ -117,6 +117,7 @@ export function useRemoteCursorOverlayPositions<
   const overlayPositions = ref<Record<string, OverlayPosition>>({});
   let overlayPositionCache: WeakMap<SlateRange, OverlayPosition> = new WeakMap();
   const computeOverlayPosition = (newCursorsValue: Record<string, CursorState<TCursorData>>) => {
+    if (!editorRef.value) return;
     // 监听containerRef.value挂载再触发一次computeOverlayPosition()
     // if (containerRef && !containerRef.value) {
     //   return;
@@ -163,7 +164,7 @@ export function useRemoteCursorOverlayPositions<
   // overlayPosition的计算依赖于：当前传入的DOM-containerRef（需要一开始没挂载，需要一段时间才挂载），cursors的值变化
   // computeOverlayPosition()有使用缓存overlayPositionCache，即使跟observer.observe(element)重复触发，也不会重复赋值overlayPositions.value
   watch(
-    () => [cursors.value, containerRef?.value],
+    () => [cursors.value, containerRef?.value, editorRef.value],
     () => {
       if (!editorRef.value) return;
       // 重新计算overlayPosition
