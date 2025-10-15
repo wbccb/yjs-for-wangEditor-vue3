@@ -40,35 +40,17 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, watch, ref, shallowRef } from "vue";
-import type { PropType } from "vue";
+import { defineComponent, ref } from "vue";
 import { useRemoteCursorOverlayPositions } from "yjs-for-vue3";
 import { addAlpha } from "../utils.ts";
-import type { IDomEditor } from "@wangeditor-next/editor";
 import type { CursorData } from "../types.ts";
 
 export default defineComponent({
   name: "RemoteCursorOverlay",
-  props: {
-    editor: {
-      type: Object as PropType<IDomEditor>,
-    },
-  },
-  setup(props) {
+  setup() {
     const containerRef = ref<HTMLDivElement>();
 
-    const editorRef = shallowRef<IDomEditor>();
-    watch(
-      () => props.editor,
-      (newValue) => {
-        if (newValue) {
-          editorRef.value = newValue;
-        }
-      },
-    );
-
     const { cursors } = useRemoteCursorOverlayPositions<CursorData, HTMLDivElement>({
-      editorRef: editorRef,
       containerRef: containerRef,
     });
 

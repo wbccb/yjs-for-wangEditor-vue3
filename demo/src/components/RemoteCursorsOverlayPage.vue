@@ -7,7 +7,7 @@
         :defaultConfig="toolbarConfig"
         mode="default"
       />
-      <RemoteCursorOverlay :editor="editorRef">
+      <RemoteCursorOverlay>
         <Editor
           style="height: 500px; overflow-y: hidden"
           :model-value="html"
@@ -34,6 +34,7 @@ import * as Y from "yjs";
 import { Editor, Toolbar } from "@wangeditor-next/editor-for-vue";
 import RemoteCursorOverlay from "./RemoteCursorOverlay.vue";
 import { randomCursorData } from "../utils.ts";
+import { provideEditor } from "yjs-for-vue3";
 
 export default defineComponent({
   name: "RemoteCursorsOverlayPage",
@@ -64,6 +65,7 @@ export default defineComponent({
       placeholder: "请输入内容...",
     };
     const editorRef = shallowRef();
+    provideEditor(editorRef);
     onBeforeUnmount(() => {
       const editor = editorRef.value;
       if (editor == null) return;

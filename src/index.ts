@@ -1,4 +1,4 @@
-export { EditorContextProvider, useEditorStatic } from "./hooks/use-editor-static";
+export { provideEditor, useEditorStatic } from "./hooks/use-editor-static";
 export type {
   CursorOverlayData,
   UseRemoteCursorOverlayPositionsOptions,
