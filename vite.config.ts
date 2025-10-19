@@ -59,4 +59,9 @@ export default defineConfig({
     port: 3000,
     open: true,
   },
+  resolve: {
+    alias: {
+      "@wangeditor-next/yjs": resolve(__dirname, "./src/yjs/index.ts"),
+    },
+  },
 });

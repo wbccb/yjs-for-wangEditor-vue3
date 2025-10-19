@@ -9,6 +9,7 @@ export default defineConfig({
     alias: {
       // 关键：将库名指向根目录源码
       "yjs-for-vue3": path.resolve(__dirname, "../src/index.ts"),
+      "@wangeditor-next/yjs": path.resolve(__dirname, "../src/yjs/src/index.ts"),
     },
   },
   server: {
