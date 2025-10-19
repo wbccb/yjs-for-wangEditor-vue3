@@ -10,6 +10,8 @@ import { getProperties } from "../utils/slate";
 function applyDelta(node: Element, slatePath: Path, delta: Delta): Operation[] {
   const ops: Operation[] = [];
 
+  console.log("applyDelta", delta);
+
   let yOffset = delta.reduce((length, change) => {
     if ("retain" in change) {
       return length + change.retain;
@@ -122,9 +124,11 @@ function applyDelta(node: Element, slatePath: Path, delta: Delta): Operation[] {
     }
 
     if ("insert" in change) {
+      console.log("🔍 Insert at Yjs offset:", yOffset);
       const [pathOffset, textOffset] = yOffsetToSlateOffsets(node, yOffset, {
         insert: true,
       });
+      console.log("  ➤ Mapped to Slate textOffset:", textOffset, "in node:", node.children[pathOffset]?.text);
       const child = node.children[pathOffset];
       const childPath = [...slatePath, pathOffset];
 
@@ -182,7 +186,10 @@ function applyDelta(node: Element, slatePath: Path, delta: Delta): Operation[] {
             type: "split_node",
             path: childPath,
             position: textOffset,
-            properties: getProperties(child),
+            properties: {
+              ...getProperties(child),
+              __split_id: Date.now() + Math.random(), // 临时唯一 mark
+            },
           });
         }
 
@@ -205,6 +212,9 @@ function applyDelta(node: Element, slatePath: Path, delta: Delta): Operation[] {
 }
 
 export function translateYTextEvent(sharedRoot: Y.XmlText, editor: Editor, event: Y.YTextEvent): Operation[] {
+  console.log("Yjs content:", sharedRoot.toString());
+  console.log("Slate full content:", Node.string(editor));
+
   const { target, changes } = event;
   const delta = event.delta as Delta;
 
@@ -229,10 +239,12 @@ export function translateYTextEvent(sharedRoot: Y.XmlText, editor: Editor, event
 
     const properties = Object.fromEntries(keyChanges.map(([key]) => [key, targetElement[key]]));
 
+    delete properties["__split_id"];
+
     ops.push({
       type: "set_node",
+      properties: properties,
       newProperties,
-      properties,
       path: slatePath,
     });
   }

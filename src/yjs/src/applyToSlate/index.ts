@@ -1,4 +1,4 @@
-import { Editor, Operation } from "slate";
+import { Editor, Operation, Node } from "slate";
 import * as Y from "yjs";
 
 import { translateYTextEvent } from "./textEvent";
@@ -28,11 +28,43 @@ export function translateYjsEvent(sharedRoot: Y.XmlText, editor: Editor, event: 
  */
 export function applyYjsEvents(sharedRoot: Y.XmlText, editor: Editor, events: Y.YEvent<Y.XmlText>[]) {
   Editor.withoutNormalizing(editor, () => {
-    events.forEach((event) => {
-      translateYjsEvent(sharedRoot, editor, event).forEach((op) => {
-        console.warn("applyYjsEvents转换Y.js为slate操作", op);
-        editor.apply(op);
+    events.forEach((event, eventIndex) => {
+      console.group(`📦 Processing Yjs Event ${eventIndex}`);
+      console.log("Yjs Delta:", event.delta);
+
+      const ops = translateYjsEvent(sharedRoot, editor, event);
+      console.log(`Generated ${ops.length} Slate operations:`, ops);
+
+      ops.forEach((op, opIndex) => {
+        console.group(`⚙️ Applying op ${opIndex}: ${op.type}`);
+        console.log("Operation:", op);
+
+        // 打印应用前的状态（关键！）
+        console.log("Slate before this op:", JSON.stringify(editor.children, null, 2));
+        console.log("Full text before:", Node.string(editor));
+
+        try {
+          editor.apply(op);
+        } catch (error) {
+          console.error("❌ Failed to apply operation:", error);
+          console.error("Operation that failed:", op);
+          console.groupEnd();
+          throw error;
+        }
+
+        // 打印应用后的状态（关键！）
+        console.log("Slate after this op:", JSON.stringify(editor.children, null, 2));
+        console.log("Full text after:", Node.string(editor));
+        console.groupEnd();
       });
+
+      console.groupEnd();
     });
+
+    // 打印最终状态
+    console.group("✅ applyYjsEvents - AFTER applying all events");
+    console.log("Slate document after:", JSON.stringify(editor.children, null, 2));
+    console.log("Full text after:", Node.string(editor));
+    console.groupEnd();
   });
 }

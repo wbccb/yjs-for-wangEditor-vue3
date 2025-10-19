@@ -8,8 +8,9 @@ export function getSlateNodeYLength(node: Node | undefined): number {
   if (!node) {
     return 0;
   }
-
-  return Text.isText(node) ? node.text.length : 1;
+  const len = Text.isText(node) ? node.text.length : 1;
+  console.log("📏 getSlateNodeYLength for", node, "=", len);
+  return len;
 }
 
 export function slatePathOffsetToYOffset(element: Element, pathOffset: number) {
